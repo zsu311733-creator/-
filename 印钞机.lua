@@ -1,17 +1,28 @@
+-- 服务统一初始化（变量混淆）
 local P,TS,HS,SG,RS,W,VI = game:GetService("Players"),game:GetService("TeleportService"),game:GetService("HttpService"),game:GetService("StarterGui"),game:GetService("RunService"),game:GetService("Workspace"),game:GetService("VirtualInputManager")
+
+-- 加密密钥（自定义，增强安全性）
 local K = 157
+-- 异或加密函数
 local function E(S)local R=""for i=1,#S do R=R..string.char(string.byte(S,i)~K)end return R end
+-- 异或解密函数
 local function D(S)local R=""for i=1,#S do R=R..string.char(string.byte(S,i)~K)end return R end
+
+-- 【白名单系统核心配置（已启用远程白名单）】
 local WC = {
     LOCAL_WHITELIST = {
-        "你的主账号用户名",
+        "你的主账号用户名",  -- 替换为你的核心账号（防止远程链接失效）
     },
     USE_REMOTE_WHITELIST = true,
     REMOTE_WHITELIST_URL = "https://raw.githubusercontent.com/zsu311733-creator/-/refs/heads/main/白名单.lua"
 }
+
+-- 本地玩家验证（白名单检测）
 local LP = P.LocalPlayer
-if not LP then return end
+if not LP then warn("无法获取本地玩家，脚本终止")return end
 local PN = LP.Name
+
+-- 白名单验证函数（适配远程JSON格式）
 local function IW()
     if WC.USE_REMOTE_WHITELIST then
         local S,R = pcall(function()return game:HttpGet(WC.REMOTE_WHITELIST_URL,true)end)
@@ -23,13 +34,17 @@ local function IW()
                 end
             end
         end
+        warn("远程白名单加载失败，切换到本地白名单")
     end
     for _,N in ipairs(WC.LOCAL_WHITELIST)do
         if N==PN then return true end
     end
     return false
 end
-if not IW()then
+
+-- 验证拦截
+local IA = IW()
+if not IA then
     pcall(function()
         SG:SetCore("SendNotification",{
             Title="❌ 权限不足",
@@ -41,6 +56,8 @@ if not IW()then
     warn("[白名单拦截] 玩家 "..PN.." 尝试使用脚本")
     return
 end
+
+-- 白名单验证通过提示
 pcall(function()
     SG:SetCore("SendNotification",{
         Title="✅ 验证成功",
@@ -49,6 +66,10 @@ pcall(function()
         Icon="rbxassetid://9146314609"
     })
 end)
+
+-- ###########################################################################
+-- 核心功能加密段（解密后执行）
+-- ###########################################################################
 local EC = E([[
 local C,H,HM,ST,IT=false,false,false,os.time(),false
 local function IC()
@@ -284,4 +305,6 @@ end
 task.spawn(ML)
 SN("🚀 脚本启动成功！白名单验证通过")
 ]])
+
+-- 解密并执行核心功能
 loadstring(D(EC))()
